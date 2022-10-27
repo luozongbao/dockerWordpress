@@ -1,0 +1,41 @@
+version: '3'
+services: 
+  php:
+    build:
+      context: .
+      dockerfile: php.dockerfile      
+    container_name: php
+    depends_on:
+      - db
+    restart: unless-stopped
+    volumes:
+      - ./wordpress/:/var/www/html
+    ports:
+      - 9000
+  nginx:
+    container_name: nginx
+    depends_on:
+      - php
+      - db
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    volumes:
+      - ./wordpress/:/var/www/html
+      - ./conf.d:/etc/nginx/conf.d
+    ports:
+      - 80:80
+  db:
+    container_name: mariadb
+    image: mariadb:10.9.3
+    restart: unless-stopped
+    volumes:
+      - ./initdb:/docker-entrypoint-initdb.d
+      - db-data:/var/lib/mysql
+    environment:
+      MARIADB_ROOT_PASSWORD: r00tP@ssword
+      MARIADB_DATABASE: wpdb
+      MARIADB_USER: wpdbuser
+      MARIADB_PASSWORD: P@ssw0rd
+
+volumes:
+  db-data:
